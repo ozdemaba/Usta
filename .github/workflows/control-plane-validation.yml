@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, 'phase-1/**', 'phase-2/**']
+    branches: [main, 'phase-1/**', 'phase-2/**', 'phase-3/**']
 jobs:
   php:
     runs-on: ubuntu-latest
@@ -26,6 +26,6 @@ jobs:
         run: php tests/security/no-exec.php wordpress/master-control-plane/goi-master-connector
       - name: Verify Core schema contract
         run: php tests/php/schema-contract.php
-      - name: Verify obvious secret material is not committed
+      - name: Verify application UI contract\n        run: php tests/php/ui-contract.php\n      - name: Verify obvious secret material is not committed
         run: |
           ! grep -RInE 'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}' wordpress deployment tests --exclude='*.md'
