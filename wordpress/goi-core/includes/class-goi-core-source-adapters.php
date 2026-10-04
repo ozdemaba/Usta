@@ -35,7 +35,41 @@ abstract class GOI_Core_HTTP_Adapter implements GOI_Core_Source_Adapter {
 final class GOI_Core_TED_Adapter extends GOI_Core_HTTP_Adapter {
  public function id(): string{return 'ted_eu';}
  public function manifest(): array{return ['name'=>'TED EU Search API','owner'=>'European Union Publications Office','country_code'=>null,'type'=>'api','auth'=>'public_search','licence'=>'TED data reuse terms','endpoint'=>'https://api.ted.europa.eu/','coverage'=>'EU procurement notices','status'=>'verified-source'];}
- public function fetch(array $cursor=[]): array { return ['records'=>[],'cursor'=>null,'source'=>$this->id(),'requires_query'=>true]; }
+ public function fetch(array $cursor=[]): array {
+  $query=isset($cursor['query'])?(string)$cursor['query']:'';
+  if($query==='') return ['records'=>[],'cursor'=>null,'source'=>$this->id(),'requires_query'=>true];
+  $mode=isset($cursor['paginationMode'])&&$cursor['paginationMode']==='PAGE_NUMBER'?'PAGE_NUMBER':'ITERATION';
+  $body=['query'=>$query,'fields'=>['publication-number','notice-title','buyer-name','form-type','place-of-performance-country','deadline-date-lot','estimated-value','estimated-value-cur','dispatch-date'],'limit'=>min(250,max(1,(int)($cursor['limit']??250))),'paginationMode'=>$mode];
+  if($mode==='PAGE_NUMBER') $body['page']=max(1,(int)($cursor['page']??1));
+  elseif(!empty($cursor['iterationNextToken'])) $body['iterationNextToken']=(string)$cursor['iterationNextToken'];
+  $r=$this->request('https://api.ted.europa.eu/v3/notices/search',['method'=>'POST','headers'=>['Accept'=>'application/json','Content-Type'=>'application/json'],'body'=>wp_json_encode($body),'timeout'=>60]);
+  $decoded=json_decode($r['body'],true);
+  if(!is_array($decoded)) throw new RuntimeException('ted_invalid_json');
+  $items=$decoded['notices']??$decoded['results']??$decoded['data']??[];
+  if(!is_array($items)) $items=[];
+  $records=[]; foreach($items as $item){ if(is_array($item)){$n=$this->map_notice($item);if($n!==null)$records[]=$n;} }
+  $next=$decoded['iterationNextToken']??$decoded['nextIterationToken']??null;
+  return ['records'=>$records,'cursor'=>$next?['query'=>$query,'paginationMode'=>'ITERATION','iterationNextToken'=>(string)$next]:null,'source'=>$this->id(),'raw_count'=>count($items)];
+ }
+ public function normalize(array $record): ?array { return parent::normalize($record); }
+ private function map_notice(array $n): ?array {
+  $id=$this->pick($n,['publication-number','publicationNumber','publication_number','id']);
+  $title=$this->pick($n,['notice-title','noticeTitle','title']);
+  if($id===''||$title==='') return null;
+  $country=$this->pick($n,['place-of-performance-country','placeOfPerformanceCountry','countryCode']);
+  if(is_array($country)) $country=(string)($country[0]??'');
+  $deadline=$this->pick($n,['deadline-date-lot','deadlineDateLot','deadlineDate','tenderPeriodEnd']);
+  if(is_array($deadline)) $deadline=(string)($deadline[0]??'');
+  $value=$this->pick($n,['estimated-value','estimatedValue','tenderValue']);
+  if(is_array($value)) $value=$value[0]??null;
+  $currency=$this->pick($n,['estimated-value-cur','estimatedValueCur','currency']);
+  if(is_array($currency)) $currency=(string)($currency[0]??'');
+  return ['id'=>(string)$id,'title'=>(string)$title,'description'=>(string)($this->pick($n,['description','noticeDescription'])??''),'country_code'=>(string)$country,'currency_code'=>(string)$currency,'deadline_at'=>(string)$deadline,'url'=>(string)($this->pick($n,['notice-url','noticeUrl','url'])??'')];
+ }
+ private function pick(array $row,array $keys) {
+  foreach($keys as $key) if(array_key_exists($key,$row)&&$row[$key]!==null&&$row[$key]!=='') return $row[$key];
+  return '';
+ }
 }
 final class GOI_Core_SAM_Adapter extends GOI_Core_HTTP_Adapter {
  public function id(): string{return 'sam_gov';}
