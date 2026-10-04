@@ -1,0 +1,29 @@
+name: Control Plane Validation
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, phase-1/control-plane, phase-1/release-installer]
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1','8.2','8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer
+      - name: Lint PHP
+        run: |
+          set -e
+          find wordpress/master-control-plane/goi-master-connector -name '*.php' -print0 | xargs -0 -n1 php -l
+          find wordpress/goi-core -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l deployment/build-release.php
+      - name: Verify forbidden execution APIs are absent from connector
+        run: php tests/security/no-exec.php wordpress/master-control-plane/goi-master-connector
+      - name: Verify obvious secret material is not committed
+        run: |
+          ! grep -RInE 'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}' wordpress deployment tests --exclude='*.md'

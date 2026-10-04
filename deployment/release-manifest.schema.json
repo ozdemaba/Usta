@@ -2,17 +2,20 @@
   "$schema":"https://json-schema.org/draft/2020-12/schema",
   "title":"GOI Release Manifest",
   "type":"object",
-  "required":["release_id","version","build_id","files","tests"],
+  "required":["release_id","version","build_id","files","tests","archive_sha256","plugin_sha256","schema_version"],
   "properties":{
-    "release_id":{"type":"string","minLength":1},
+    "release_id":{"type":"string","pattern":"^[A-Za-z0-9._-]{1,190}$"},
     "version":{"type":"string","pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+$"},
     "build_id":{"type":"string","minLength":1},
-    "files":{"type":"array","items":{"type":"object","required":["path","sha256","size"],"properties":{"path":{"type":"string"},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"size":{"type":"integer","minimum":0}}}},
+    "schema_version":{"type":"string","minLength":1},
+    "archive_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "plugin_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "files":{"type":"array","minItems":1,"items":{"type":"object","required":["path","sha256","size"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"size":{"type":"integer","minimum":0}},"additionalProperties":false}},
     "tests":{"type":"array","items":{"type":"string"}},
     "migrations":{"type":"array","items":{"type":"string"}},
     "minimum_php":{"type":"string"},
     "minimum_wordpress":{"type":"string"},
     "rollback_release":{"type":["string","null"]}
   },
-  "additionalProperties":true
+  "additionalProperties":false
 }
