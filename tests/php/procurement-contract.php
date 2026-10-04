@@ -14,5 +14,5 @@ foreach(['opportunity_observations','procurement_records','procurement_awards','
 foreach(['canonical_key','ocid','tender_period_end','award_status','contract_status','raw_payload_hash'] as $token){ if(strpos($db,$token)===false) throw new RuntimeException('missing_schema_token: '.$token); }
 foreach(['/procurement','/procurement/(?P<id>\\d+)','/procurement/ingest','source_id_source_record_id_title_required','canonical_key'] as $token){ if(strpos($proc,$token)===false) throw new RuntimeException('missing_procurement_contract: '.$token); }
 if(strpos($install,'migrate_1_3_0')===false || strpos($install,"'1.3.0'")===false) throw new RuntimeException('migration_1_3_0_missing');
-if(strpos($core,"Version: 0.7.0")===false || strpos($core,"GOI_Core_Procurement::register()")===false) throw new RuntimeException('core_0_6_0_integration_missing');
+if(strpos($core,"Version: 0.8.0")===false || strpos($core,"GOI_Core_Procurement::register()")===false) throw new RuntimeException('core_0_6_0_integration_missing');
 echo "GOI procurement contract passed.\n";
