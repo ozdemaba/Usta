@@ -20,5 +20,5 @@ if(strpos($dbText,'dbDelta($statement)')===false) throw new RuntimeException('db
 if(strpos($installText,'migrate_1_1_0')===false) throw new RuntimeException('migration_missing');
 if(strpos($installText,"migrate_1_2_0")===false) throw new RuntimeException('map_schema_migration_missing');
 if(strpos($installText,"'1.2.0'")===false) throw new RuntimeException('schema_version_missing');
-if(strpos($coreText,"Version: 0.4.0")===false) throw new RuntimeException('core_version_missing');
+if(strpos($coreText,"Version: 0.5.0")===false) throw new RuntimeException('core_version_missing');
 echo "GOI Core schema contract passed.\n";
