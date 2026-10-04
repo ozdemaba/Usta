@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.goi-command').forEach(function(b){b.addEventListener('click',function(){window.alert('GOI AI Command Centre will be connected to the Master Agent in the AI phase.');});});});
