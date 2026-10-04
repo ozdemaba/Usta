@@ -1,0 +1,23 @@
+name: PHP Validation
+
+on:
+  push:
+    branches: [ main, 'phase-0/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - name: Lint PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=$(find wordpress services -type f -name '*.php' 2>/dev/null || true)
+          if [ -z "$files" ]; then echo 'No PHP files yet; repository scaffold validation passed.'; exit 0; fi
+          while IFS= read -r file; do php -l "$file"; done <<< "$files"
