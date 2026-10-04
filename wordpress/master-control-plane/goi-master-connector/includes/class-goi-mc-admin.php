@@ -15,7 +15,7 @@ final class GOI_MC_Admin {
  public static function save():void{
   if(!current_user_can('manage_options'))wp_die('Forbidden');check_admin_referer('goi_mc_settings');
   $key=preg_replace('/\s+/','',(string)($_POST['release_public_key']??''));
-  if($key!==''&&(!is_string(base64_decode($key,true))||strlen(base64_decode($key,true))!==SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES))wp_die('Invalid Ed25519 public key');
+  if($key!==''&&(!function_exists('sodium_crypto_sign_verify_detached')||!defined('SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES')||!is_string(base64_decode($key,true))||strlen(base64_decode($key,true))!==SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES))wp_die('Invalid Ed25519 public key');
   GOI_MC_Storage::update_settings(['enabled'=>isset($_POST['enabled']),'production_requires_approval'=>isset($_POST['production_requires_approval']),'release_public_key'=>$key]);
   wp_safe_redirect(admin_url('admin.php?page=goi-master-connector&updated=1'));exit;
  }
