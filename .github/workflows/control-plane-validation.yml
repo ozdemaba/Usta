@@ -34,6 +34,8 @@ jobs:
         run: php tests/php/procurement-contract.php
       - name: Verify procurement source contract
         run: php tests/php/procurement-source-contract.php
+      - name: Verify source adapter contract
+        run: php tests/php/source-adapter-contract.php
       - name: Verify obvious secret material is not committed
         run: |
           ! grep -RInE 'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}' wordpress deployment tests --exclude='*.md'
