@@ -13,13 +13,13 @@ final class GOI_Core_Ingestion_Worker {
   $run=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$t['data_source_runs']} WHERE id=%d LIMIT 1",$run_id),ARRAY_A);
   if(!$run) return new WP_REST_Response(['ok'=>false,'error'=>'run_not_found'],404);
   if($run['status']!=='running') return new WP_REST_Response(['ok'=>false,'error'=>'run_not_running'],409);
-  $adapter=GOI_Core_Source_Registry::get((string)$wpdb->get_var($wpdb->prepare("SELECT name FROM {$t['data_sources']} WHERE id=%d",$run['source_id'])));
-  if(!$adapter){
-   $source_name=(string)$wpdb->get_var($wpdb->prepare("SELECT uuid FROM {$t['data_sources']} WHERE id=%d",$run['source_id']));
-   $adapter=GOI_Core_Source_Registry::get($source_name);
-  }
-  if(!$adapter) return self::fail($run_id,'adapter_not_registered');
+  $source=$wpdb->get_row($wpdb->prepare("SELECT adapter_id FROM {$t['data_sources']} WHERE id=%d LIMIT 1",$run['source_id']),ARRAY_A);
+  if(!$source) return self::fail($run_id,'source_not_found');
   $input=$request->get_json_params(); if(!is_array($input)) $input=[];
+  $adapter_id=sanitize_key((string)($input['adapter_id']??$source['adapter_id']??''));
+  if($adapter_id==='') return self::fail($run_id,'adapter_id_required');
+  $adapter=GOI_Core_Source_Registry::get($adapter_id);
+  if(!$adapter) return self::fail($run_id,'adapter_not_registered');
   $cursor=[]; if(!empty($run['cursor'])){$decoded=json_decode($run['cursor'],true);if(is_array($decoded))$cursor=$decoded;}
   $cursor=array_merge($cursor,$input);
   $max_pages=min(10,max(1,absint($input['max_pages']??1)));
