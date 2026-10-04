@@ -26,6 +26,10 @@ jobs:
         run: php tests/security/no-exec.php wordpress/master-control-plane/goi-master-connector
       - name: Verify Core schema contract
         run: php tests/php/schema-contract.php
-      - name: Verify application UI contract\n        run: php tests/php/ui-contract.php\n      - name: Verify obvious secret material is not committed
+      - name: Verify application UI contract
+        run: php tests/php/ui-contract.php
+      - name: Verify map contract
+        run: php tests/php/map-contract.php
+      - name: Verify obvious secret material is not committed
         run: |
           ! grep -RInE 'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}' wordpress deployment tests --exclude='*.md'
