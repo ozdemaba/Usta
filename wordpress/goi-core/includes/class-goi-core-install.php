@@ -20,7 +20,6 @@ final class GOI_Core_Install {
   $t=GOI_Core_DB::tables();
   $indexes=$wpdb->get_results($wpdb->prepare("SHOW INDEX FROM {$t['opportunities']} WHERE Key_name=%s",'source_external'));
   if($indexes) { $wpdb->query("ALTER TABLE {$t['opportunities']} DROP INDEX source_external"); }
-  $wpdb->query("UPDATE {$t['opportunities']} SET canonical_key=SHA2(CONCAT(COALESCE(external_id,''),'|',COALESCE(country_code,'')),256) WHERE canonical_key IS NULL AND external_id IS NOT NULL");
   update_option('goi_core_schema_version','1.3.0',false);
  }
 }
