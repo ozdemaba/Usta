@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GOI Core
  * Description: Global Opportunity Intelligence application core.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
  * License: GPL-2.0-or-later
