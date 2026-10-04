@@ -73,8 +73,32 @@ final class GOI_Core_TED_Adapter extends GOI_Core_HTTP_Adapter {
 }
 final class GOI_Core_SAM_Adapter extends GOI_Core_HTTP_Adapter {
  public function id(): string{return 'sam_gov';}
- public function manifest(): array{return ['name'=>'SAM.gov Contract Opportunities','owner'=>'U.S. General Services Administration','country_code'=>'US','type'=>'api','auth'=>'api_key','licence'=>'SAM.gov Terms of Use','endpoint'=>'https://sam.gov/','coverage'=>'US federal contract opportunities','status'=>'verified-source'];}
- public function fetch(array $cursor=[]): array { return ['records'=>[],'cursor'=>null,'source'=>$this->id(),'requires_credentials'=>true]; }
+ public function manifest(): array{return ['name'=>'SAM.gov Contract Opportunities','owner'=>'U.S. General Services Administration','country_code'=>'US','type'=>'api','auth'=>'api_key','licence'=>'SAM.gov Terms of Use','endpoint'=>'https://api.sam.gov/opportunities/v2/search','coverage'=>'US federal contract opportunities','status'=>'verified-source'];}
+ public function fetch(array $cursor=[]): array {
+  $key=defined('GOI_SAM_GOV_API_KEY')?(string)GOI_SAM_GOV_API_KEY:(string)getenv('GOI_SAM_GOV_API_KEY');
+  if($key==='') return ['records'=>[],'cursor'=>null,'source'=>$this->id(),'requires_credentials'=>true];
+  $from=$this->date($cursor['postedFrom']??gmdate('m/d/Y',time()-6*86400));
+  $to=$this->date($cursor['postedTo']??gmdate('m/d/Y'));
+  $from_ts=DateTimeImmutable::createFromFormat('!m/d/Y',$from,new DateTimeZone('UTC')); $to_ts=DateTimeImmutable::createFromFormat('!m/d/Y',$to,new DateTimeZone('UTC'));
+  if(!$from_ts||!$to_ts||$from_ts>$to_ts||($to_ts->getTimestamp()-$from_ts->getTimestamp())>365*86400) throw new RuntimeException('sam_invalid_date_window');
+  $limit=min(1000,max(1,(int)($cursor['limit']??1000))); $offset=max(0,(int)($cursor['offset']??0));
+  $params=['api_key'=>$key,'postedFrom'=>$from,'postedTo'=>$to,'limit'=>$limit,'offset'=>$offset];
+  foreach(['ptype','solnum','noticeid','title','state','zip','organizationCode','organizationName','typeOfSetAside','typeOfSetAsideDescription','ncode','ccode','rdlfrom','rdlto','active'] as $k) if(isset($cursor[$k])&&$cursor[$k]!=='') $params[$k]=sanitize_text_field((string)$cursor[$k]);
+  $url='https://api.sam.gov/opportunities/v2/search?'.http_build_query($params,'','&',PHP_QUERY_RFC3986);
+  $r=$this->request($url,['method'=>'GET','headers'=>['Accept'=>'application/json'],'timeout'=>60]);
+  $decoded=json_decode($r['body'],true); if(!is_array($decoded)) throw new RuntimeException('sam_invalid_json');
+  $items=$decoded['opportunitiesData']??[]; if(!is_array($items)) $items=[];
+  $records=[]; foreach($items as $item){if(is_array($item)){ $mapped=$this->map_notice($item); if($mapped!==null)$records[]=$mapped; }}
+  $total=max(0,(int)($decoded['totalRecords']??0)); $next=$offset+$limit<$total?array_merge($cursor,['postedFrom'=>$from,'postedTo'=>$to,'limit'=>$limit,'offset'=>$offset+$limit]):null;
+  return ['records'=>$records,'cursor'=>$next,'source'=>$this->id(),'raw_count'=>count($items),'total_records'=>$total];
+ }
+ private function date($value): string { $v=sanitize_text_field((string)$value); return preg_match('/^\\d{2}\\/\\d{2}\\/\\d{4}$/',$v)?$v:gmdate('m/d/Y'); }
+ private function map_notice(array $n): ?array {
+  $id=sanitize_text_field((string)($n['noticeId']??'')); $title=sanitize_text_field((string)($n['title']??'')); if($id===''||$title==='')return null;
+  $country=$n['placeOfPerformance']['country']['code']??'US'; if(is_array($country))$country=$country['code']??'US'; $country=strtoupper((string)$country); if($country==='USA')$country='US';
+  $deadline=(string)($n['responseDeadLine']??''); $url=(string)($n['uiLink']??''); if($url==='') {foreach((array)($n['links']??[]) as $link) if(is_array($link)&&!empty($link['href'])){$url=(string)$link['href'];break;}}
+  return ['id'=>$id,'title'=>$title,'description'=>(string)($n['description']??''),'country_code'=>$country,'currency_code'=>'USD','deadline_at'=>$deadline,'url'=>$url];
+ } 
 }
 final class GOI_Core_AusTender_Adapter extends GOI_Core_HTTP_Adapter {
  public function id(): string{return 'austender';}
