@@ -67,8 +67,7 @@ final class GOI_Core_Procurement {
    $wpdb->update($t['opportunities'],$op,['id'=>$existing],null,['%d']); $opportunity_id=$existing;
   } else {
    $op['uuid']=wp_generate_uuid4();$op['created_at']=$now;
-   $formats=['%s','%s','%s','%s','%s','%s','%s','%s','%s','%f','%s','%s','%f','%f','%s','%s','%s','%s','%s','%s','%s','%s','%s'];
-   $wpdb->insert($t['opportunities'],$op,$formats); $opportunity_id=(int)$wpdb->insert_id;
+   $wpdb->insert($t['opportunities'],$op); $opportunity_id=(int)$wpdb->insert_id;
   }
   if(!$opportunity_id) return new WP_REST_Response(['ok'=>false,'error'=>'opportunity_write_failed'],500);
   $source_row=(int)$wpdb->get_var($wpdb->prepare("SELECT id FROM {$t['opportunity_sources']} WHERE opportunity_id=%d AND source_id=%d LIMIT 1",$opportunity_id,$source_id));
