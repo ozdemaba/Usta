@@ -28,7 +28,7 @@ final class GOI_MC_Release {
    $result=self::install_zip($tmp,$manifest,$req);
    @unlink($tmp);GOI_MC_Storage::unlock();return new WP_REST_Response($result,200);
   }catch(Throwable $e){
-   @unlink($tmp);GOI_MC_Storage::transition($release,'failed',['error'=>$e->getMessage()]);GOI_MC_Storage::unlock();GOI_MC_Audit::log($req,'release.install_failed',$release,'error',['error'=>$e->getMessage()]);
+   @unlink($tmp);GOI_MC_Storage::transition($release,'failed',['error'=>$e->getMessage()]);self::restore_failed_install($release);GOI_MC_Storage::unlock();GOI_MC_Audit::log($req,'release.install_failed',$release,'error',['error'=>$e->getMessage()]);
    return new WP_REST_Response(['ok'=>false,'error'=>'release_install_failed','request_id'=>$req],500);
   }
  }
@@ -72,6 +72,18 @@ final class GOI_MC_Release {
   $root='';$prefix=null;
   for($i=0;$i<$zip->numFiles;$i++){ $n=$zip->getNameIndex($i);if(str_ends_with($n,'/')){$parts=explode('/',trim($n,'/'));if(count($parts)===1&&$prefix===null)$prefix=$parts[0];} }
   if($prefix!==null)$root=$prefix.'/';return $root;
+ }
+ private static function restore_failed_install(string $release):void{
+  $d=GOI_MC_Storage::deployment($release);if(!$d)return;$details=json_decode((string)$d['details'],true);if(!is_array($details))$details=[];
+  $previous_schema=(string)($details['previous_schema']??get_option('goi_core_schema_version','0'));$current_schema=(string)get_option('goi_core_schema_version','0');
+  if(version_compare($current_schema,$previous_schema,'>')){GOI_MC_Audit::log(GOI_MC_Security::request_id(),'deployment.rollback_blocked',$release,'error',['reason'=>'database_schema_advanced']);return;}
+  $root=trailingslashit(WP_CONTENT_DIR).'goi-release-rollback/'.sanitize_file_name($release);$active=trailingslashit(WP_PLUGIN_DIR).'goi-core';$hold=$root.'-failed-'.wp_generate_uuid4();
+  if(!is_dir($root))return;
+  if(is_dir($active)&&!rename($active,$hold))return;
+  if(!rename($root,$active)){if(is_dir($hold))rename($hold,$active);return;}
+  if(!empty($details['was_active'])){require_once ABSPATH.'wp-admin/includes/plugin.php';activate_plugin('goi-core/goi-core.php',true);}
+  GOI_MC_Storage::transition($release,'rolled_back',['automatic'=>true,'previous_schema'=>$previous_schema]);
+  GOI_MC_Audit::log(GOI_MC_Security::request_id(),'deployment.rollback',$release,'ok',['automatic'=>true]);
  }
  private static function remove_tree(string $dir):void{
   if(!is_dir($dir))return;$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);
