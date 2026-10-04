@@ -8,7 +8,7 @@ $required=[
 ];
 foreach($required as $file){if(!is_file($root.'/'.$file)) throw new RuntimeException("Missing UI asset: ".$file);}
 $plugin=file_get_contents($root.'/wordpress/goi-core/goi-core.php');
-foreach(["class-goi-core-ui.php","GOI_Core_UI::init()","Version: 0.4.0","GOI_CORE_VERSION','0.4.0"] as $needle){
+foreach(["class-goi-core-ui.php","GOI_Core_UI::init()","Version: 0.5.0","GOI_CORE_VERSION','0.4.0"] as $needle){
  if(strpos($plugin,$needle)===false) throw new RuntimeException("UI integration contract failed: ".$needle);
 }
 $ui=file_get_contents($root.'/wordpress/goi-core/includes/class-goi-core-ui.php');
