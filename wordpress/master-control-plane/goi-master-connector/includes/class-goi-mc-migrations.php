@@ -19,14 +19,19 @@ final class GOI_MC_Migrations {
   if(version_compare($final,$target,'<')) throw new Exception('migration_target_unreachable');
   return ['ok'=>true,'from'=>$current,'to'=>$final,'applied'=>$applied];
  }
+ private static function load_core(): void {
+  if(class_exists('GOI_Core_DB',false)) return;
+  $plugin=WP_PLUGIN_DIR.'/goi-core/goi-core.php';
+  if(is_readable($plugin)) require_once $plugin;
+  if(!class_exists('GOI_Core_DB',false)) throw new Exception('goi_core_not_loadable');
+ }
  private static function available(): array {
   return [
    '1.0.0'=>static function(): void {
     if(!get_option('goi_core_schema_version')) add_option('goi_core_schema_version','1.0.0',false);
    },
    '1.1.0'=>static function(): void {
-    if(!defined('GOI_CORE_DIR')) throw new Exception('goi_core_not_loaded');
-    require_once GOI_CORE_DIR.'includes/class-goi-core-db.php';
+    self::load_core();
     GOI_Core_DB::install_schema();
    },
   ];
