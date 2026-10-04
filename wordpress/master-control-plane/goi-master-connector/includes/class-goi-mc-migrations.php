@@ -34,6 +34,10 @@ final class GOI_MC_Migrations {
     self::load_core();
     GOI_Core_DB::install_schema();
    },
+   '1.2.0'=>static function(): void {
+    self::load_core();
+    GOI_Core_DB::install_schema();
+   },
   ];
  }
 }
