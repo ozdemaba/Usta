@@ -69,9 +69,12 @@ final class GOI_MC_Release {
   if(count($seen)!==count($expected))throw new Exception('archive_manifest_incomplete');
  }
  private static function archive_root(ZipArchive $zip):string{
-  $root='';$prefix=null;
-  for($i=0;$i<$zip->numFiles;$i++){ $n=$zip->getNameIndex($i);if(str_ends_with($n,'/')){$parts=explode('/',trim($n,'/'));if(count($parts)===1&&$prefix===null)$prefix=$parts[0];} }
-  if($prefix!==null)$root=$prefix.'/';return $root;
+  $prefix=null;
+  for($i=0;$i<$zip->numFiles;$i++){
+   $n=trim(str_replace('\\\\','/',$zip->getNameIndex($i)),'/');if($n==='')continue;$parts=explode('/',$n);
+   if($prefix===null)$prefix=$parts[0];elseif($prefix!==$parts[0])return '';
+  }
+  return $prefix!==null?$prefix.'/':'';
  }
  private static function restore_failed_install(string $release):void{
   $d=GOI_MC_Storage::deployment($release);if(!$d)return;$details=json_decode((string)$d['details'],true);if(!is_array($details))$details=[];
