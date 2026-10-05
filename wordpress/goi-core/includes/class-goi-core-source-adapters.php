@@ -92,7 +92,7 @@ final class GOI_Core_SAM_Adapter extends GOI_Core_HTTP_Adapter {
   $total=max(0,(int)($decoded['totalRecords']??0)); $next=$offset+$limit<$total?array_merge($cursor,['postedFrom'=>$from,'postedTo'=>$to,'limit'=>$limit,'offset'=>$offset+$limit]):null;
   return ['records'=>$records,'cursor'=>$next,'source'=>$this->id(),'raw_count'=>count($items),'total_records'=>$total];
  }
- private function date($value): string { $v=sanitize_text_field((string)$value); return preg_match('/^\\d{2}\\/\\d{2}\\/\\d{4}$/',$v)?$v:gmdate('m/d/Y'); }
+ private function date($value): string { $v=sanitize_text_field((string)$value); return preg_match('/^\d{2}\/\d{2}\/\d{4}$/',$v)?$v:gmdate('m/d/Y'); }
  private function map_notice(array $n): ?array {
   $id=sanitize_text_field((string)($n['noticeId']??'')); $title=sanitize_text_field((string)($n['title']??'')); if($id===''||$title==='')return null;
   $country=$n['placeOfPerformance']['country']['code']??'US'; if(is_array($country))$country=$country['code']??'US'; $country=strtoupper((string)$country); if($country==='USA')$country='US';
