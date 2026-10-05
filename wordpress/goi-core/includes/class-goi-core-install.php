@@ -24,6 +24,5 @@ final class GOI_Core_Install {
   if($indexes) { $wpdb->query("ALTER TABLE {$t['opportunities']} DROP INDEX source_external"); }
   update_option('goi_core_schema_version','1.3.0',false);
  }
-}
  public static function migrate_1_6_0(): void { if(version_compare((string)get_option('goi_core_schema_version','0'),'1.6.0','>=')) return; require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema(); update_option('goi_core_schema_version','1.6.0',false); }
 }
