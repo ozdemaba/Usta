@@ -2,7 +2,7 @@
 defined('ABSPATH') || exit;
 final class GOI_Core_Install {
  public static function activate(): void {
-  self::migrate_1_0_0(); self::migrate_1_1_0(); self::migrate_1_2_0(); self::migrate_1_3_0(); self::migrate_1_4_0();
+  self::migrate_1_0_0(); self::migrate_1_1_0(); self::migrate_1_2_0(); self::migrate_1_3_0(); self::migrate_1_4_0(); self::migrate_1_5_0();
   update_option('goi_core_version',GOI_CORE_VERSION,false); self::ensure_front_page();
  }
  public static function ensure_front_page(): void {
@@ -15,6 +15,7 @@ final class GOI_Core_Install {
  public static function migrate_1_1_0(): void { require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema(); update_option('goi_core_schema_version','1.1.0',false); }
  public static function migrate_1_2_0(): void { if(version_compare((string)get_option('goi_core_schema_version','0'),'1.2.0','>=')) return; require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema(); update_option('goi_core_schema_version','1.2.0',false); }
  public static function migrate_1_4_0(): void { if(version_compare((string)get_option('goi_core_schema_version','0'),'1.4.0','>=')) return; require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema(); update_option('goi_core_schema_version','1.4.0',false); }
+ public static function migrate_1_5_0(): void { if(version_compare((string)get_option('goi_core_schema_version','0'),'1.5.0','>=')) return; require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema(); update_option('goi_core_schema_version','1.5.0',false); }
  public static function migrate_1_3_0(): void {
   if(version_compare((string)get_option('goi_core_schema_version','0'),'1.3.0','>=')) return;
   global $wpdb; require_once GOI_CORE_DIR.'includes/class-goi-core-db.php'; GOI_Core_DB::install_schema();
@@ -24,3 +25,4 @@ final class GOI_Core_Install {
   update_option('goi_core_schema_version','1.3.0',false);
  }
 }
+

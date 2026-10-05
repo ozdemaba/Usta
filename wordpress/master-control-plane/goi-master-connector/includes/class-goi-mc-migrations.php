@@ -38,13 +38,14 @@ final class GOI_MC_Migrations {
     self::load_core();
     GOI_Core_DB::install_schema();
    },
-   '1.4.0'=>static function(): void { self::load_core(); require_once GOI_CORE_DIR.'includes/class-goi-core-install.php'; GOI_Core_Install::migrate_1_4_0(); },
    '1.3.0'=>static function(): void {
     self::load_core();
     if(class_exists('GOI_Core_Install')) { GOI_Core_Install::migrate_1_3_0(); return; }
     require_once GOI_CORE_DIR.'includes/class-goi-core-install.php';
     GOI_Core_Install::migrate_1_3_0();
    },
+   '1.4.0'=>static function(): void { self::load_core(); require_once GOI_CORE_DIR.'includes/class-goi-core-install.php'; GOI_Core_Install::migrate_1_4_0(); },
+   '1.5.0'=>static function(): void { self::load_core(); require_once GOI_CORE_DIR.'includes/class-goi-core-install.php'; GOI_Core_Install::migrate_1_5_0(); },
   ];
  }
 }
